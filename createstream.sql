@@ -1,3 +1,3 @@
 CREATE OR REPLACE STREAM my_table_stream
   ON TABLE my_table
-  SHOW_INITIAL = TRUE;
+  
