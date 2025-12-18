@@ -1,0 +1,37 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: bitcoin-app
+  namespace: dev      
+  labels:
+    app: bitcoin-app
+    version: green
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: bitcoin-app
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1       
+      maxUnavailable: 0   
+  template:
+    metadata:
+      labels:
+        app: bitcoin-app
+        version: green
+    spec:
+      containers:
+        - name: bitcoin-app
+          image: rukevweubio/bitcointrading-app:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 80
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: 80
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            failureThreshold: 3

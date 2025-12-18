@@ -1,0 +1,17 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: bitcoin-app
+  namespace: dev
+  labels:
+    app: bitcoin-app
+   
+spec:
+  selector:
+    app: bitcoin-app
+    version: green
+  type: NodePort
+  ports:
+    - protocol: TCP  
+      port: 80
+      targetPort: 80
