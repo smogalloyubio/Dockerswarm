@@ -1,20 +1,47 @@
-name: Docker Swarm Deploy
+name: Build and Deploy
 
 on:
   push:
     branches:
       - main
+  pull_request:
+    types: [opened, synchronize, reopened]
 
 jobs:
-  build-and-deploy:
+  sonar-build-deploy:
+    name: SonarQube + Docker + Swarm Deploy
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
+      # Step 1: Checkout code
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
+      # Step 2: SonarQube Scan
+      - name: SonarQube Scan
+        uses: SonarSource/sonarqube-scan-action@v6
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+
+      # Step 3: Set up Docker
       - name: Set up Docker
         uses: docker/setup-buildx-action@v3
+
+      # Step 4: Build Docker image
+      - name: Build Docker image
+        working-directory: ./bitcoin-app
+        run: |
+          docker build -t mybitcoin-app:latest .
+
+   
+      - name: Scan Docker image with Trivy
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: mybitcoin-app:latest
+          scan-type: image
+          severity-threshold: HIGH,CRITICAL
+          exit-code: 1
 
       - name: Log in to Docker Hub
         uses: docker/login-action@v2
@@ -22,17 +49,14 @@ jobs:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
 
-      - name: Build Docker image
-        working-directory: ./bitcoin-app
-        run: |
-          docker build -t mybitcoin-app:latest .
-
+      # Step 7: Push Docker image
       - name: Push Docker image
         working-directory: ./bitcoin-app
         run: |
           docker tag mybitcoin-app:latest ${{ secrets.DOCKER_USERNAME }}/mybitcoin-app:latest
           docker push ${{ secrets.DOCKER_USERNAME }}/mybitcoin-app:latest
 
+      # Step 8: Deploy to Docker Swarm via SSH
       - name: Deploy to Docker Swarm via SSH
         uses: appleboy/ssh-action@v0.1.7
         with:
@@ -42,4 +66,4 @@ jobs:
           port: 22
           script: |
             docker service update --image ${{ secrets.DOCKER_USERNAME }}/mybitcoin-app:latest mybitcoin-app_service || \
-            docker service create --name mybitcoin-app_service  --replicas 2 ${{ secrets.DOCKER_USERNAME }}/mybitcoin-app:latest
+            docker service create --name mybitcoin-app_service --replicas 2 ${{ secrets.DOCKER_USERNAME }}/mybitcoin-app:latest
