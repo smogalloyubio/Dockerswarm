@@ -63,8 +63,8 @@ jobs:
       - name: Push Docker image
         working-directory: ./bitcoin-app
         run: |
-          docker tag mybitcoin-app:latest ${{ secrets.DOCKER_USERNAME }}/mybitcoin-app:latest
-          docker push ${{ secrets.DOCKER_USERNAME }}/mybitcoin-app:latest
+          docker tag mybitcoin-app:latest ${{ secrets.DOCKER_USER }}/mybitcoin-app:latest
+          docker push ${{ secrets.DOCKER_USER }}/mybitcoin-app:latest
 
       # Step 8: Deploy to Docker Swarm via SSH
       - name: Deploy to Docker Swarm via SSH
@@ -75,5 +75,5 @@ jobs:
           key: ${{ secrets.SSH_KEY }}
           port: 22
           script: |
-            docker service update --image ${{ secrets.DOCKER_USERNAME }}/mybitcoin-app:latest mybitcoin-app_service || \
+            docker service update --image ${{ secrets.DOCKER_USER}}/mybitcoin-app:latest mybitcoin-app_service || \
             docker service create --name mybitcoin-app_service  --publish 80:80 --replicas 2 ${{ secrets.DOCKER_USERNAME }}/mybitcoin-app:latest
