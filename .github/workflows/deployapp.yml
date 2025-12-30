@@ -71,8 +71,8 @@ jobs:
         uses: appleboy/ssh-action@v0.1.7
         with:
           host: ${{ secrets.SSH_HOST }}
-          username: ${{ secrets.SSH_USER }}
-          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          username: ${{ secrets.SSH_USERNAME }}
+          key: ${{ secrets.SSH_KEY }}
           port: 22
           script: |
             docker service update --image ${{ secrets.DOCKER_USERNAME }}/mybitcoin-app:latest mybitcoin-app_service || \
