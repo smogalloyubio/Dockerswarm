@@ -76,4 +76,4 @@ jobs:
           port: 22
           script: |
             docker service update --image ${{ secrets.DOCKER_USERNAME }}/mybitcoinapp:latest mybitcoinapp-service || \
-            docker service create --name mybitcoinapp-service  --publish 80:80 --replicas 2 ${{ secrets.DOCKER_USERNAME }}/mybitcoinapp:latest
+            docker service create --name mybitcoinapp-service  --publish 80:80 --replicas 4 ${{ secrets.DOCKER_USERNAME }}/mybitcoinapp:latest
